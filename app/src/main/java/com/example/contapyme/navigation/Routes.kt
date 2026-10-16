@@ -1,6 +1,7 @@
 package com.example.contapyme.navigation
 
 object Routes {
+    const val INICIO = "inicio"
     const val LOGIN = "login"
     const val DASHBOARD = "dashboard"
     const val REGISTRAR_VENTA = "registrar_venta"

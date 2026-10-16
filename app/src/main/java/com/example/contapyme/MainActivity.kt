@@ -32,6 +32,7 @@ import com.example.contapyme.ui.screens.DetalleClienteScreen
 import com.example.contapyme.ui.screens.DetalleVentaScreen
 import com.example.contapyme.ui.screens.InventarioScreen
 import com.example.contapyme.ui.screens.LoginScreen
+import com.example.contapyme.ui.screens.InicioScreen
 import com.example.contapyme.ui.screens.NotificacionesScreen
 import com.example.contapyme.ui.screens.RegistrarGastoScreen
 import com.example.contapyme.ui.screens.RegistrarVentaScreen
@@ -67,9 +68,18 @@ fun AppNavHost() {
     Box(Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color(0xFFF4F6FB))) {
         NavHost(
             navController = navController,
-            startDestination = Routes.LOGIN,
+            startDestination = Routes.INICIO,
             modifier = Modifier.fillMaxSize()
         ) {
+            composable(Routes.INICIO) {
+                InicioScreen(
+                    onTimeout = {
+                        navController.navigate("login") {
+                            popUpTo("inicio") { inclusive = true } // para que "atrás" no regrese al splash
+                        }
+                    }
+                )
+            }
             composable(Routes.LOGIN) {
                 LoginScreen(
                     onLogin = {
@@ -84,10 +94,14 @@ fun AppNavHost() {
                 DashboardScreen(
                     onNotificaciones = { navController.navigate(Routes.NOTIFICACIONES) },
                     onVerAlerta = { id -> navController.navigate(Routes.detalleAlerta(id)) },
-                    onVerVentas = { navController.navigate(Routes.VENTAS) }
+                    onVerVentas = { navController.navigate(Routes.VENTAS) },
+                    onCerrarSesion = {
+                        navController.navigate(Routes.LOGIN) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
                 )
             }
-
             composable(Routes.REGISTRAR_VENTA) {
                 RegistrarVentaScreen(
                     onBack = { navController.popBackStack() },
