@@ -1,6 +1,7 @@
 package com.example.contapyme.navigation
 
 object Routes {
+    const val INICIO = "inicio"
     const val LOGIN = "login"
     const val TWO_FA = "two_fa"
     const val FORGOT_PASSWORD = "forgot_password"

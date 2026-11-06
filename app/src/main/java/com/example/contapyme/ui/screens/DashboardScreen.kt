@@ -48,43 +48,90 @@ import com.example.contapyme.ui.theme.TextSecondary
 import com.example.contapyme.ui.theme.WarningAmber
 import com.example.contapyme.ui.data.DashboardAlertItem
 import com.example.contapyme.ui.data.dashboardAlerts
+import androidx.compose.foundation.border
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.example.contapyme.ui.components.CerrarSesionConfirmDialog
+import com.example.contapyme.ui.components.PerfilUsuarioSheet
 
 @Composable
 fun DashboardScreen(
     onNotificaciones: () -> Unit,
     onVerAlerta: (String) -> Unit,
-    onVerVentas: () -> Unit
+    onVerVentas: () -> Unit,
+    onCerrarSesion: () -> Unit
 ) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF4F6FB)),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
-    ) {
-        item {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Brush.verticalGradient(listOf(GradientStart, GradientEnd)))
-                    .padding(top = 48.dp, bottom = 24.dp)
-                    .padding(horizontal = 20.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(46.dp)
-                            .shadow(6.dp, CircleShape)
-                            .clip(CircleShape)
-                            .background(Navy),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("LM", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                    }
-                    Spacer(Modifier.width(12.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text("Viernes, 9 de octubre", color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
-                        Text("Hola, Laura", color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
-                    }
+    var mostrarPerfilSheet by remember { mutableStateOf(false) }
+    var mostrarConfirmacion by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF4F6FB)),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Brush.verticalGradient(listOf(GradientStart, GradientEnd)))
+                        .padding(top = 48.dp, bottom = 24.dp)
+                        .padding(horizontal = 20.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // Avatar interactivo estilizado con borde e indicador
+                        Box(
+                            modifier = Modifier
+                                .clickable { mostrarPerfilSheet = true }
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(46.dp)
+                                    .shadow(8.dp, CircleShape)
+                                    .clip(CircleShape)
+                                    .background(Navy)
+                                    .border(2.dp, Color.White.copy(alpha = 0.45f), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("LM", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            }
+
+                            // Indicador de conexión verde
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .size(13.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.White)
+                                    .padding(2.dp)
+                                    .clip(CircleShape)
+                                    .background(SuccessGreen)
+                            )
+                        }
+
+                        Spacer(Modifier.width(12.dp))
+
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { mostrarPerfilSheet = true }
+                        ) {
+                            Text("Viernes, 9 de octubre", color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Hola, Laura", color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                                Spacer(Modifier.width(4.dp))
+                                Icon(
+                                    imageVector = Icons.Filled.KeyboardArrowDown,
+                                    contentDescription = "Abrir perfil",
+                                    tint = Color.White.copy(alpha = 0.85f),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
                     Box(
                         modifier = Modifier
                             .size(44.dp)
@@ -222,6 +269,27 @@ fun DashboardScreen(
 
         item { Spacer(Modifier.height(8.dp)) }
         item { Spacer(Modifier.height(70.dp)) }
+    }
+
+    if (mostrarPerfilSheet) {
+        PerfilUsuarioSheet(
+            onDismiss = { mostrarPerfilSheet = false },
+            onSolicitarCerrarSesion = {
+                mostrarPerfilSheet = false
+                mostrarConfirmacion = true
+            }
+        )
+    }
+
+    if (mostrarConfirmacion) {
+        CerrarSesionConfirmDialog(
+            onDismiss = { mostrarConfirmacion = false },
+            onConfirmar = {
+                mostrarConfirmacion = false
+                onCerrarSesion()
+            }
+        )
+    }
     }
 }
 
