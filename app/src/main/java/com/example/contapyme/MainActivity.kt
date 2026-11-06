@@ -7,8 +7,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -16,7 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -31,12 +29,18 @@ import com.example.contapyme.ui.screens.DetalleAlertaScreen
 import com.example.contapyme.ui.screens.DetalleClienteScreen
 import com.example.contapyme.ui.screens.DetalleVentaScreen
 import com.example.contapyme.ui.screens.InventarioScreen
-import com.example.contapyme.ui.screens.LoginScreen
 import com.example.contapyme.ui.screens.NotificacionesScreen
 import com.example.contapyme.ui.screens.RegistrarGastoScreen
 import com.example.contapyme.ui.screens.RegistrarVentaScreen
 import com.example.contapyme.ui.screens.VentasScreen
+import com.example.contapyme.ui.screens.auth.ApiConfigScreen
+import com.example.contapyme.ui.screens.auth.ChangePasswordScreen
+import com.example.contapyme.ui.screens.auth.ForgotPasswordScreen
+import com.example.contapyme.ui.screens.auth.LoginScreenNew
+import com.example.contapyme.ui.screens.auth.ResetPasswordScreen
+import com.example.contapyme.ui.screens.auth.TwoFAScreen
 import com.example.contapyme.ui.theme.ContaPymeTheme
+import com.example.contapyme.ui.viewmodel.AuthViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,6 +67,7 @@ fun AppNavHost() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     var showQuickActions by remember { mutableStateOf(false) }
+    val authViewModel: AuthViewModel = viewModel()
 
     Box(Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color(0xFFF4F6FB))) {
         NavHost(
@@ -71,12 +76,77 @@ fun AppNavHost() {
             modifier = Modifier.fillMaxSize()
         ) {
             composable(Routes.LOGIN) {
-                LoginScreen(
-                    onLogin = {
+                LoginScreenNew(
+                    viewModel = authViewModel,
+                    onRequires2FA = {
+                        navController.navigate(Routes.TWO_FA) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onAlreadyLoggedIn = {
+                        navController.navigate(Routes.DASHBOARD) {
+                            popUpTo(Routes.LOGIN) { inclusive = true }
+                        }
+                    },
+                    onNavigateToForgotPassword = {
+                        navController.navigate(Routes.FORGOT_PASSWORD)
+                    },
+                    onNavigateToApiConfig = {
+                        navController.navigate(Routes.API_CONFIG)
+                    }
+                )
+            }
+            
+            composable(Routes.TWO_FA) {
+                TwoFAScreen(
+                    viewModel = authViewModel,
+                    onBack = {
+                        authViewModel.reset2FAFlow()
+                        navController.popBackStack()
+                    },
+                    onVerified = {
                         navController.navigate(Routes.DASHBOARD) {
                             popUpTo(Routes.LOGIN) { inclusive = true }
                         }
                     }
+                )
+            }
+            
+            composable(Routes.FORGOT_PASSWORD) {
+                ForgotPasswordScreen(
+                    viewModel = authViewModel,
+                    onBack = { navController.popBackStack() },
+                    onNavigateToReset = { token ->
+                        navController.navigate("${Routes.RESET_PASSWORD}/$token")
+                    }
+                )
+            }
+            
+            composable("${Routes.RESET_PASSWORD}/{token}") { backStackEntry ->
+                val token = backStackEntry.arguments?.getString("token") ?: ""
+                ResetPasswordScreen(
+                    viewModel = authViewModel,
+                    token = token,
+                    onBack = { navController.popBackStack() },
+                    onSuccess = {
+                        navController.navigate(Routes.LOGIN) {
+                            popUpTo(Routes.LOGIN) { inclusive = true }
+                        }
+                    }
+                )
+            }
+            
+            composable(Routes.CHANGE_PASSWORD) {
+                ChangePasswordScreen(
+                    viewModel = authViewModel,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            
+            composable(Routes.API_CONFIG) {
+                ApiConfigScreen(
+                    viewModel = authViewModel,
+                    onBack = { navController.popBackStack() }
                 )
             }
 
